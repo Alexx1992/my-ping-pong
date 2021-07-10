@@ -1,0 +1,78 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+*, *::after, *::before {
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.main-field {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  width: 800px;
+  height: 600px;
+  margin: auto;
+  opacity: 0;
+  background-color: rgb(20, 20, 20);
+}
+
+.player {
+  height: 40px;
+  width: 6px;
+  border-radius: 2px;
+  background-color: rgb(220, 220, 220);
+  transition: transform .15s linear;
+}
+
+.player.left {
+  margin-left: 10px;
+}
+
+.player.right {
+  margin-right: 10px;
+}
+
+.divider {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  left: 0;
+  right: 0;
+  width: 0px;
+  margin: 0 auto;
+  border: 2px dashed rgb(220, 220, 220);
+}
+
+.ball {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgb(220, 220, 220);
+  /*transition: transform 2s linear;*/
+}
+
+.score-container {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  font-size: 8em;
+  color: rgb(220, 220, 220);
+}
+
+.score {
+  display: flex;
+  pointer-events: none;
+}
+
+.score span {
+  margin: 0 auto;
+  opacity: .5;
+}

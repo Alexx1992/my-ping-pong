@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=r, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Document</title>
+</head>
+<body>
+  <div class="container">
+    <div class="main-field" id="main-field">
+      <div class="left player" id="left-palyer"></div>
+      <div class="right player" id="right-palyer"></div>
+      <div class="ball" id="ball"></div>
+      
+      <div class="divider"></div>
+      <div class="score-container">
+        <div class="score">
+          <span class="left-score" id="left-score">0</span>
+          <span class="right-score" id="right-score">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script type="module">
+  import init, { fieldWidth, fieldHeight, animationId } from './app.js';
+  import './playersMove.js';
+
+  const mainField = document.getElementById('main-field');
+  const ball = document.getElementById('ball');
+  const leftPlayer = document.getElementById('left-palyer');
+  const rightPlayer = document.getElementById('right-palyer');
+  
+  const playerHeight = leftPlayer.offsetHeight; // 40
+  const playerWidth = leftPlayer.offsetWidth; // 6
+
+  const { 
+    y: mainFieldTopY,
+    x: mainFieldLeftX,
+  } = mainField.getBoundingClientRect();
+
+  const currentLeftPlayerXPostion = leftPlayer.getBoundingClientRect().x - mainFieldLeftX + playerWidth;
+  const currentRightPlayerXPostion = rightPlayer.getBoundingClientRect().x - mainFieldLeftX;
+
+  let countLeft = 0;
+  let countRight = 0;
+  const leftScore = document.getElementById('left-score');
+  const rightScore = document.getElementById('right-score');
+
+  function pxToDegrees(px, long) {
+    return 178 / long * px;
+  }
+
+  function hasBallOnPlayer(ballPos, playerPos) {
+    return ballPos >= playerPos && ballPos <= playerPos + playerHeight;
+  }
+
+  function getTouchYPostion(ballPos, playerPos) {
+    return Math.round(ballPos - playerPos);
+  }
+
+  function getBallNewPosition (angel, indentX, indentY) {
+    const xPos = indentX + (850 * Math.cos(angel * (Math.PI / 180)));
+    const yPos = indentY + (850 * Math.sin(angel * (Math.PI / 180)));
+    return [xPos, yPos];
+  }
+
+  let xBallPosition = 396;
+  let yBallPosition = -10;
+  
+  let ballSpeed = 0.9;
+  let xBallSpeed = Math.abs(xBallPosition - 396) / 60 * ballSpeed;
+  let yBallSpeed = Math.abs(xBallPosition - 296) / 60 * ballSpeed;
+  console.log(xBallSpeed, yBallSpeed);
+
+  function ballMove() {
+    const { x: ballXPosition, y: ballYPosition } = ball.getBoundingClientRect();
+    const currentBallXPosition = ballXPosition - mainFieldLeftX;
+    const currentBallYPosition = ballYPosition - mainFieldTopY;
+
+    const currentLeftPlayerYPostion = leftPlayer.getBoundingClientRect().y - mainFieldTopY;
+    const currentRightPlayerYPostion = rightPlayer.getBoundingClientRect().y - mainFieldTopY;
+    
+
+    if (currentBallXPosition < 0) {
+      countRight++;
+      rightScore.innerText = countRight;
+      cancelAnimationFrame(animationId);
+      return init();
+    }
+    if (currentBallXPosition > fieldWidth - 8) {
+      countLeft++;
+      leftScore.innerText = countLeft;
+      cancelAnimationFrame(animationId);
+      return init();
+    }
+
+    const hasBallOnLeftPlayer = hasBallOnPlayer(currentBallYPosition, currentLeftPlayerYPostion);
+    
+    if (currentBallXPosition <= currentLeftPlayerXPostion && hasBallOnLeftPlayer) {
+      const touchYPosition = getTouchYPostion(currentBallYPosition + 4, currentLeftPlayerYPostion);
+      const angel = pxToDegrees(touchYPosition, playerHeight);
+      [xBallPosition, yBallPosition] = getBallNewPosition(angel - 90, 16, currentBallYPosition);
+      xBallSpeed = Math.abs(xBallPosition - currentBallXPosition) / 60 * ballSpeed;
+      yBallSpeed = Math.abs(yBallPosition - currentBallYPosition) / 60 * ballSpeed;
+      console.log(xBallSpeed, yBallSpeed);
+    }
+
+    if (currentBallYPosition <= 0 && (currentBallXPosition >= 0 || currentBallXPosition <= fieldWidth)) {
+      const angel = pxToDegrees(currentBallXPosition + 4, fieldWidth);
+      [xBallPosition, yBallPosition] = getBallNewPosition(angel, currentBallXPosition + 4, 0);
+      xBallSpeed = Math.abs(xBallPosition - currentBallXPosition) / 60 * ballSpeed;
+      yBallSpeed = Math.abs(yBallPosition - currentBallYPosition) / 60 * ballSpeed;
+    }
+    
+    const hasBallOnRightPlayer = hasBallOnPlayer(currentBallYPosition, currentRightPlayerYPostion);
+    // console.log(currentBallXPosition >= currentRightPlayerXPostion, hasBallOnRightPlayer)
+    if ((currentBallXPosition + 8) >= currentRightPlayerXPostion && hasBallOnRightPlayer) {
+      const touchYPosition = getTouchYPostion(currentBallYPosition, currentLeftPlayerYPostion);
+      const angel = pxToDegrees(touchYPosition, playerHeight);
+      [xBallPosition, yBallPosition] = getBallNewPosition(angel + 90, 16, currentBallYPosition);
+      xBallSpeed = Math.abs(xBallPosition - currentBallXPosition) / 60 * ballSpeed;
+      yBallSpeed = Math.abs(yBallPosition - currentBallYPosition) / 60 * ballSpeed;
+    }
+
+    if (currentBallYPosition + 8 >= fieldHeight && (currentBallXPosition >= 0 || currentBallXPosition <= fieldWidth)) {
+      const angel = pxToDegrees(currentBallXPosition + 4, fieldWidth);
+      [xBallPosition, yBallPosition] = getBallNewPosition(angel + 180, currentBallXPosition + 4, 0);
+      xBallSpeed = Math.abs(xBallPosition - currentBallXPosition) / 60 * ballSpeed;
+      yBallSpeed = Math.abs(yBallPosition - currentBallYPosition) / 60 * ballSpeed;
+    }
+
+    let xPos = currentBallXPosition;
+    let yPos = currentBallYPosition;
+
+    if (currentBallXPosition !== xBallPosition) {
+      xPos = currentBallXPosition < xBallPosition ? currentBallXPosition + xBallSpeed : currentBallXPosition - xBallSpeed;
+    }
+
+    if (currentBallYPosition !== yBallPosition) {
+      yPos = currentBallYPosition < yBallPosition ? currentBallYPosition + yBallSpeed : currentBallYPosition - yBallSpeed;
+    }
+
+    ball.style.transform = `translate(${xPos}px, ${yPos}px)`;
+    
+    requestAnimationFrame(ballMove);
+  }
+
+  /*
+  X = Cx + (r * cosine(angle))  
+  Y = Cy + (r * sine(angle))
+  */
+
+  function startAnimation() {
+    return requestAnimationFrame(ballMove);
+  }
+
+  init();
+
+  
+</script>
+</html>
